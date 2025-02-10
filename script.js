@@ -33,6 +33,8 @@ let obstacles = [];
 let bonuses = [];
 let score = 0;
 let isGameOver = false;
+let tripCount = 0;
+let wineCount = 0;
 let lastObstacleTime = 0;
 let lastBonusTime = 0;
 let objectOrder = ['work', 'trip', 'wine'];
@@ -100,8 +102,10 @@ function updateBonuses() {
         } else if (collision(player, bonus)) {
             if (bonus.type === 'trip') {
                 score += 10;
+                tripCount += 1;
             } else if (bonus.type === 'wine') {
                 score += 20;
+                wineCount += 1;
             }
             bonuses.splice(i, 1);  // Удаление бонуса при столкновении
         }
@@ -141,6 +145,8 @@ function drawUI() {
     ctx.fillStyle = 'white';
     ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
+    ctx.fillText(`Trips: ${tripCount}`, 10, 60);
+    ctx.fillText(`Wines: ${wineCount}`, 10, 90);
 }
 
 function drawBonuses() {
@@ -217,7 +223,18 @@ function gameLoop(timestamp) {
 }
 
 // Обработчик ввода
+function handleTap(event) {
+    const tapY = event.touches ? event.touches[0].clientY : event.clientY;
+    if (tapY < canvas.height / 2) {
+        player.targetY = 0;  // Переключение на верхнюю часть экрана
+    } else {
+        player.targetY = canvas.height - player.height;  // Переключение на нижнюю часть экрана
+    }
+}
+
 document.addEventListener('keydown', handleInput);
+document.addEventListener('touchstart', handleTap);
+document.addEventListener('click', handleTap);
 
 // Запуск игры
 gameLoop(0);
