@@ -32,16 +32,16 @@ let player = {
 let obstacles = [];
 let bonuses = [];
 let score = 0;
-let tripCount = 0;
-let wineCount = 0;
 let isGameOver = false;
 let lastObstacleTime = 0;
 let lastBonusTime = 0;
 let objectOrder = ['work', 'trip', 'wine'];
 let nextObjectIndex = 0;
+let celebrationStartTime = null;
 
 const obstacleInterval = 2000;
 const bonusInterval = 2000;
+const celebrationDuration = 2000; // Продолжительность показа праздничной надписи
 
 // Функции для отрисовки объектов
 function drawPlayer() {
@@ -100,12 +100,10 @@ function updateBonuses() {
         } else if (collision(player, bonus)) {
             if (bonus.type === 'trip') {
                 score += 10;
-                tripCount++;
             } else if (bonus.type === 'wine') {
                 score += 20;
-                wineCount++;
             }
-            bonuses.splice(i, 1);
+            bonuses.splice(i, 1);  // Удаление бонуса при столкновении
         }
     }
 }
@@ -143,8 +141,6 @@ function drawUI() {
     ctx.fillStyle = 'white';
     ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
-    ctx.fillText(`Trips: ${tripCount}`, 10, 60);
-    ctx.fillText(`Wines: ${wineCount}`, 10, 90);
 }
 
 function drawBonuses() {
@@ -154,15 +150,27 @@ function drawBonuses() {
     });
 }
 
+function drawCelebration() {
+    if (celebrationStartTime !== null) {
+        const elapsedTime = performance.now() - celebrationStartTime;
+        if (elapsedTime < celebrationDuration) {
+            ctx.fillStyle = 'gold';
+            ctx.font = '40px Arial';
+            ctx.fillText('С днем рождения!', canvas.width / 2 - 150, canvas.height / 2);
+        } else {
+            celebrationStartTime = null; // Сброс времени празднования
+        }
+    }
+}
+
 function restartGame() {
     player.y = canvas.height - player.height;
     player.targetY = canvas.height - player.height;
     obstacles = [];
     bonuses = [];
     score = 0;
-    tripCount = 0;
-    wineCount = 0;
     isGameOver = false;
+    celebrationStartTime = null;
 }
 
 function gameLoop(timestamp) {
@@ -197,6 +205,11 @@ function gameLoop(timestamp) {
 
     drawBonuses();
     drawUI();
+    drawCelebration();
+
+    if (score > 0 && score % 1000 === 0 && celebrationStartTime === null) {
+        celebrationStartTime = performance.now();
+    }
 
     score += 1;
 
